@@ -1,22 +1,19 @@
-version: '3.8'
-
 services:
   mariadb:
-    image: mariadb:11.0
+    image: 'mariadb:11.0'
     container_name: order-food-mariadb
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MARIADB_DATABASE: ${DB_NAME}
-      MARIADB_USER: ${DB_USER}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MARIADB_DATABASE: '${DB_NAME}'
+      MARIADB_USER: '${DB_USER}'
+      MARIADB_PASSWORD: '${DB_PASSWORD}'
     ports:
-      - "${DB_PORT}:3306"
+      - '${DB_PORT}:3306'
     volumes:
-      - mariadb_data:/var/lib/mysql
-      - ./migrations:/migrations
+      - 'mariadb_data:/var/lib/mysql'
+      - './migrations:/migrations'
     networks:
       - order-network
-
   api:
     build:
       context: .
@@ -29,13 +26,15 @@ services:
     networks:
       - order-network
     ports:
-      - "${PORT}:8080"
-    command: ["sh", "/app/start.sh"]
-
+      - '${PORT}:8080'
+    volumes:
+      - './coupons:/app/coupons'
+    command:
+      - sh
+      - /app/start.sh
 volumes:
   mariadb_data:
     driver: local
-
 networks:
   order-network:
     driver: bridge

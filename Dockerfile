@@ -1,4 +1,4 @@
-FROM golang:1.25.4 AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -18,6 +18,7 @@ WORKDIR /app
 COPY --from=builder /app/order-api /app/
 COPY start.sh /app/start.sh
 COPY migrations /migrations
+COPY coupons /app/coupons
 
 RUN chmod +x /app/start.sh
 

@@ -16,13 +16,13 @@ func TestSetup(t *testing.T) {
 		// mock repo
 		mockRepo := NewMockRepository(ctrl)
 
-		// create echo instance
+		// echo instance
 		e := echo.New()
 
-		// call the setup that should register the route
-		Setup(e, mockRepo)
+		// pass nil for promo validator
+		Setup(e, mockRepo, nil)
 
-		// find the route
+		// verify route
 		routes := e.Routes()
 		found := false
 		for _, r := range routes {

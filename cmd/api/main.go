@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -17,8 +18,9 @@ import (
 	"github.com/mohammadshabab/order-food-online/internal/health"
 	"github.com/mohammadshabab/order-food-online/internal/logger"
 	"github.com/mohammadshabab/order-food-online/internal/middleware"
-
 	"github.com/mohammadshabab/order-food-online/internal/order"
+	"github.com/mohammadshabab/order-food-online/internal/promo"
+
 	"github.com/mohammadshabab/order-food-online/internal/product"
 )
 
@@ -62,9 +64,17 @@ func main() {
 	productRepo := product.NewMariaDBRepository()
 	product.Setup(e, productRepo)
 
-	// Order module
+	// Promo validator: load coupons from configs/coupons (create this folder and add your .gz files there)
+	fmt.Println("cfg.CouponDir ", cfg.CouponDir)
+	promoValidator, promoErr := promo.New(cfg.CouponDir)
+	if promoErr != nil {
+		logger.Log().Error("failed to load promo coupons", "error", promoErr)
+		log.Fatalf("promo validator load failed: %v", promoErr)
+	}
+
+	// Order module (pass promoValidator)
 	orderRepo := order.NewMariaDBRepository()
-	order.Setup(e, orderRepo)
+	order.Setup(e, orderRepo, promoValidator)
 
 	// Start server in a goroutine
 	go func() {

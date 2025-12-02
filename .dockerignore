@@ -2,8 +2,6 @@
 
 .git
 .gitignore
-*.go
-.env
 .env.local
 # IDE
 .vscode

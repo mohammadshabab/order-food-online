@@ -15,17 +15,20 @@ func TestService_CreateOrder(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := NewMockRepository(ctrl)
-	svc := NewService(mockRepo)
+	svc := NewService(mockRepo, nil)
 
 	t.Run("validation fails", func(t *testing.T) {
-		req := &OrderReq{Items: &[]OrderItem{}} // empty items triggers validation error
+		req := &OrderReq{Items: &[]OrderItem{}}
 
 		order, err := svc.CreateOrder(context.Background(), req)
+
 		assert.Nil(t, order)
 		assert.NotNil(t, err)
 
 		appErr, ok := err.(*apperrors.AppError)
-		assert.True(t, ok, "error should be of type *apperrors.AppError")
+		assert.True(t, ok)
+
+		// Update this to match your actual Validate() implementation
 		assert.Equal(t, 422, appErr.Code)
 		assert.Equal(t, "order must have at least one item", appErr.Message)
 	})
@@ -33,12 +36,12 @@ func TestService_CreateOrder(t *testing.T) {
 	t.Run("repository returns error", func(t *testing.T) {
 		req := &OrderReq{Items: &[]OrderItem{{ProductID: "p1", Quantity: 2}}}
 
-		// Expect Create to be called and return an error
 		mockRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Return(nil, errors.New("db error"))
 
 		order, err := svc.CreateOrder(context.Background(), req)
+
 		assert.Nil(t, order)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, "db error")
@@ -48,15 +51,15 @@ func TestService_CreateOrder(t *testing.T) {
 		req := &OrderReq{Items: &[]OrderItem{{ProductID: "p1", Quantity: 2}}}
 		expectedOrder := &Order{ID: "order1", Items: *req.Items}
 
-		// Mock repository to return expected order
 		mockRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(_ context.Context, o *Order) (*Order, error) {
-				o.ID = expectedOrder.ID // assign deterministic ID
+				o.ID = expectedOrder.ID
 				return o, nil
 			})
 
 		order, err := svc.CreateOrder(context.Background(), req)
+
 		assert.NoError(t, err)
 		assert.NotNil(t, order)
 		assert.Equal(t, expectedOrder.ID, order.ID)
